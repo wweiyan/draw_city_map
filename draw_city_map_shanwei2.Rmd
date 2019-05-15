@@ -1,0 +1,67 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r echo = FALSE}
+#加载数据包
+library(ggplot2)
+library(maptools)
+library(rgdal)
+library(plyr)
+setwd("C:/Users/swpc/Documents/draw_city_map")
+china_map2 <- readOGR(dsn=path.expand("gadm36_CHN_shp"),layer="gadm36_CHN_3")
+```
+
+```{r echo = FALSE}
+##保存地图csv
+shanwei2 = subset(china_map2,NAME_2=="Shanwei")
+shanwei_map = fortify(shanwei2)
+shanwei_map[shanwei_map==329] <- "海丰县"
+shanwei_map[shanwei_map==330] <- "陆丰市"
+shanwei_map[shanwei_map==331] <- "陆河县"
+shanwei_map[shanwei_map==332] <- "汕尾城区"
+write.csv(shanwei_map,"shanwei_maps.csv")
+```
+```{r}
+shanwei <- read.csv("shanwei_maps.csv")
+data <- data.frame(county = unique(sort(shanwei$id)))
+data$rand <- runif(length(data$county))
+ggplot(data) +
+  geom_map(aes(map_id=county,fill=rand),color = "white", map = shanwei_map)+
+  scale_fill_gradient(high = "darkgreen",low = "lightgreen") +
+  expand_limits(x=shanwei$long, y=shanwei$lat)+coord_map()
+```
+```{r}
+#添加寻找中心并加入标签
+center = as.data.frame(coordinates(shanwei2))
+center$county <- c("海丰县","陆丰市","陆河县","汕尾城区")
+center$rand1 <- runif(length(center$county))
+center$rand2 <- runif(length(center$county))
+ggplot(data) +
+  geom_map(aes(map_id=county,fill=rand),color = "white", map = shanwei_map)+
+  scale_fill_gradient(high = "darkgreen",low = "lightgreen") +
+  expand_limits(x=shanwei$long, y=shanwei$lat)+coord_map() +
+  geom_text(aes(x = V1,y = V2,label = county), data = center)+
+  geom_errorbar(aes(x = V1,ymin=V2,ymax=V2+rand1/10), data = center,size=3,color="brown",width=0,alpha=1)+
+  geom_errorbar(aes(x = V1+0.025,ymin=V2,ymax=V2+rand2/10), data = center,size=3,color="orange",width=0,alpha=1)+
+  geom_point(aes(x=115.2,y=23),size=1,color="red")+
+  annotate("text", x=116, y=22.65, label="二氧化硫",color= "orange", size=3)+
+  annotate("text", x=116, y=22.7, label="氮氧化物",color= "brown", size=3) +
+  xlab("经度")+ylab("纬度")
+  
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
