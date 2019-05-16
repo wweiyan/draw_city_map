@@ -1,0 +1,30 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r echo = FALSE}
+#加载数据包
+library(ggplot2)
+library(maptools)
+setwd("C:/Users/YAN/Documents/Codes/R/draw_city_map")
+shanwei_map <- read.csv("shanwei_maps.csv")
+```
+```{r}
+data =data.frame(
+  county=c("汕尾城区","海丰县","陆丰市","陆河县"),
+  rand=c(1,2,3,4))
+heat_data <- data.frame(
+  long=runif(30,min=min(shanwei_map$long),max=max(shanwei_map$long)),
+  lat=runif(30,min=min(shanwei_map$lat),max=max(shanwei_map$lat)),
+  count=runif(30,1,100))
+
+ggplot(data) +
+  geom_map(aes(map_id=county,fill="#CD3333"),color = "#317AE2", map = shanwei_map)+
+  expand_limits(x=shanwei_map$long, y=shanwei_map$lat)+
+  geom_point(aes(long, lat, size = count), data = heat_data,alpha=0.5,
+             position="jitter",color="#EE7621")+
+  theme_gray()+
+  coord_map()
+```
+
